@@ -51,19 +51,19 @@ export function SleepCard({ habit, log, onUpdate }) {
     return (
         <div className={clsx('tracker-card sleep-card', isCompleted && 'completed')}>
             <div className="card-content flex flex-col w-full gap-3 py-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-3">
                         <div className={clsx('icon-box', isCompleted ? 'bg-green' : 'bg-indigo')}>
                             <Moon size={18} className={isCompleted ? 'text-black' : 'text-indigo-400'} fill={isCompleted ? 'currentColor' : 'none'} />
                         </div>
-                        <div>
-                            <span className="text-base font-medium block">Sleep</span>
+                        <div className="flex flex-col">
+                            <span className="text-base font-medium leading-tight">Sleep</span>
                             {hoursLogged > 0 && (
-                                <span className="text-xs text-secondary">{hoursLogged} hrs</span>
+                                <span className="text-[10px] text-secondary font-mono">{hoursLogged} hrs</span>
                             )}
                         </div>
                     </div>
-                    {isCompleted && <div className="text-xs font-mono text-green-500">GOAL MET</div>}
+                    {isCompleted && <div className="goal-badge">GOAL MET</div>}
                 </div>
 
                 <div className="time-inputs flex gap-3 pl-[48px]">
