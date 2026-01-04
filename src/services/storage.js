@@ -21,7 +21,7 @@ const DEFAULT_HABITS = [
         title: 'Water Intake',
         type: 'count',
         section: 'daytime',
-        goal: { target: 8, unit: 'bottles' },
+        goal: { target: 3, unit: 'bottles' },
         created_at: new Date().toISOString(),
         archived: false
     },

@@ -14,13 +14,29 @@ export function useStore() {
 
         // Simple migration: if core routine habits are missing, add them
         const defaultIds = ['h_morning', 'h_water', 'h_daytime', 'h_evening', 'h_night', 'h_sleep'];
-        const currentIds = loadedHabits.map(h => h.id);
+        let updatedHabits = [...loadedHabits];
+        let hasChanges = false;
+
+        const currentIds = updatedHabits.map(h => h.id);
         const missing = storage.getHabits().filter(h => defaultIds.includes(h.id) && !currentIds.includes(h.id));
 
         if (missing.length > 0) {
-            const merged = [...loadedHabits, ...missing];
-            storage.saveHabits(merged);
-            setHabits(merged);
+            updatedHabits = [...updatedHabits, ...missing];
+            hasChanges = true;
+        }
+
+        // Specific fix for water goal: change 8 to 3
+        updatedHabits = updatedHabits.map(h => {
+            if (h.id === 'h_water' && h.goal?.target === 8) {
+                hasChanges = true;
+                return { ...h, goal: { ...h.goal, target: 3 } };
+            }
+            return h;
+        });
+
+        if (hasChanges) {
+            storage.saveHabits(updatedHabits);
+            setHabits(updatedHabits);
         } else {
             setHabits(loadedHabits);
         }
