@@ -1,0 +1,195 @@
+.tracker-card {
+    position: relative;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    min-height: 72px;
+    height: auto;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: var(--space-4);
+    transition: all 0.2s ease;
+}
+
+.progress-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.2) 100%);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.water-card.completed .progress-bg {
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.water-card.completed {
+    border-color: var(--accent-dim);
+}
+
+.icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(59, 130, 246, 0.1);
+    transition: all 0.3s ease;
+}
+
+.text-blue-400 {
+    color: #60a5fa;
+}
+
+.icon-box.bg-green {
+    background-color: var(--accent-primary);
+}
+
+.text-black {
+    color: #000;
+}
+
+
+.control-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.control-btn.add {
+    background-color: var(--btn-primary-bg, white);
+    color: black;
+}
+
+.control-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Skincare */
+.skincare-card {
+    height: auto;
+    min-height: 84px;
+    align-items: flex-start;
+}
+
+.text-purple-400 {
+    color: #c084fc;
+}
+
+.bg-purple {
+    background-color: rgba(192, 132, 252, 0.1);
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.chip.active {
+    background-color: var(--text-primary);
+    color: var(--bg-main);
+    border-color: var(--text-primary);
+    border-color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Sleep */
+.sleep-card {
+    height: auto;
+    min-height: 100px;
+    align-items: flex-start;
+}
+
+.bg-indigo {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+.text-indigo-400 {
+    color: #818cf8;
+}
+
+.time-input {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+}
+
+.time-input:focus {
+    border-color: var(--accent-primary);
+}
+
+.time-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+/* Routine Section */
+.routine-section {
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
+}
+
+.section-header {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+    transition: opacity 0.2s;
+}
+
+.section-header:active {
+    opacity: 0.7;
+}
+
+.section-mini-progress {
+    width: 80px;
+    height: 4px;
+    background-color: var(--bg-hover);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.section-mini-progress .fill {
+    height: 100%;
+    background-color: var(--accent-primary);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-complete .section-mini-progress .fill {
+    background-color: var(--accent-primary);
+    animation: successPulse 2s infinite;
+}
+
+.section-complete h2 {
+    color: var(--text-primary);
+}

@@ -1,0 +1,74 @@
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+    min-height: 200px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.empty-state-text {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+/* Improved spacing utilities */
+.gap-3 {
+    gap: var(--space-3);
+}
+
+.gap-6 {
+    gap: var(--space-6);
+}
+
+.mt-1 {
+    margin-top: var(--space-1);
+}
+
+.mt-2 {
+    margin-top: var(--space-2);
+}
+
+.mb-2 {
+    margin-bottom: var(--space-2);
+}
+
+/* Font utilities */
+.font-medium {
+    font-weight: var(--weight-medium);
+}
+
+.font-semibold {
+    font-weight: var(--weight-semibold);
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Sheet Handle */
+.sheet-handle {
+    width: 36px;
+    height: 4px;
+    background-color: var(--border-focus);
+    border-radius: 2px;
+    margin: 12px auto 0;
+    opacity: 0.5;
+}

@@ -1,0 +1,134 @@
+.weekly-grid-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: var(--space-4);
+    overflow-x: auto;
+}
+
+.grid-header {
+    display: flex;
+    margin-bottom: var(--space-3);
+    padding-left: 100px;
+}
+
+.corner-spacer {
+    width: 0;
+}
+
+.day-header {
+    width: 32px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.day-header.is-today {
+    color: var(--accent-primary);
+}
+
+.grid-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-3);
+}
+
+.grid-row:last-child {
+    margin-bottom: 0;
+}
+
+.habit-label {
+    width: 100px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 8px;
+}
+
+.grid-cell {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: var(--bg-hover);
+    margin-right: 4px;
+    transition: all 0.2s;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: block;
+}
+
+.grid-cell:hover:not(:disabled) {
+    background-color: var(--border-focus);
+    transform: scale(1.05);
+}
+
+.grid-cell:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.grid-cell.completed {
+    background-color: var(--accent-primary);
+}
+
+.grid-cell.future {
+    opacity: 0.1;
+    background-color: var(--border-subtle);
+}
+
+.grid-cell.failed {
+    background-color: #450a0a;
+    /* Darker Red */
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    opacity: 0.8;
+}
+
+/* Trend Card */
+.trend-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.text-green-400 {
+    color: #4ade80;
+}
+
+.text-red-400 {
+    color: #f87171;
+}
+
+/* Week Navigation */
+.week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+}
+
+.week-nav-btn {
+    padding: var(--space-2);
+    color: var(--text-primary);
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.week-nav-btn:hover {
+    background-color: var(--bg-hover);
+}
+
+.week-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}

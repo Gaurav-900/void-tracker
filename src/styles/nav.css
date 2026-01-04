@@ -1,0 +1,52 @@
+/* Add to index.css or create new file */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--max-width);
+    height: var(--nav-height);
+    background-color: var(--bg-main);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    padding: var(--space-2);
+    flex: 1;
+    height: 100%;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    margin: 4px;
+}
+
+.nav-item:active {
+    transform: scale(0.9);
+    background-color: var(--bg-hover);
+}
+
+.nav-item.active {
+    color: var(--text-primary);
+}
+
+.nav-item.active .icon {
+    stroke: var(--accent-primary);
+    stroke-width: 2.5px;
+}
+
+.nav-label {
+    font-size: 10px;
+    margin-top: 4px;
+    font-weight: var(--weight-medium);
+}
