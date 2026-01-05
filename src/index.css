@@ -288,6 +288,10 @@ a {
 
 .text-dim {
   color: var(--text-dim);
+  opacity: 0.6;
+}
+
+.crossed {
   text-decoration: line-through;
 }
 
@@ -404,10 +408,4 @@ a {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   transform: scale(1.05);
-}
-
-.text-dim {
-  color: var(--text-dim);
-  text-decoration: line-through;
-  opacity: 0.6;
 }

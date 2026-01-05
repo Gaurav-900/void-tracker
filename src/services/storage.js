@@ -17,6 +17,15 @@ const DEFAULT_HABITS = [
         archived: false
     },
     {
+        id: 'h_morning_food',
+        title: 'Food (Nutrition)',
+        type: 'multi_check',
+        section: 'morning',
+        items: ['Soya Granules'],
+        created_at: new Date().toISOString(),
+        archived: false
+    },
+    {
         id: 'h_water',
         title: 'Water Intake',
         type: 'count',
@@ -30,7 +39,16 @@ const DEFAULT_HABITS = [
         title: 'Daytime Routine',
         type: 'multi_check',
         section: 'daytime',
-        items: ['Sabzi + Roti Eaten', 'Shake Taken', 'Gym Done', 'Face Pulls Done'],
+        items: ['Sabzi + Roti Eaten', 'Face Pulls Done'],
+        created_at: new Date().toISOString(),
+        archived: false
+    },
+    {
+        id: 'h_gym',
+        title: 'Gym',
+        type: 'multi_check',
+        section: 'evening',
+        items: ['Gym Done'],
         created_at: new Date().toISOString(),
         archived: false
     },
@@ -88,6 +106,22 @@ export const storage = {
             ...habitData
         };
         const updated = [...habits, newHabit];
+        storage.saveHabits(updated);
+        return updated;
+    },
+
+    updateHabit: (habitId, updates) => {
+        const habits = storage.getHabits();
+        const updated = habits.map(h =>
+            h.id === habitId ? { ...h, ...updates } : h
+        );
+        storage.saveHabits(updated);
+        return updated;
+    },
+
+    deleteHabit: (habitId) => {
+        const habits = storage.getHabits();
+        const updated = habits.filter(h => h.id !== habitId);
         storage.saveHabits(updated);
         return updated;
     },

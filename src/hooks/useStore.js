@@ -13,7 +13,7 @@ export function useStore() {
         const loadedLogs = storage.getLogs();
 
         // Simple migration: if core routine habits are missing, add them
-        const defaultIds = ['h_morning', 'h_water', 'h_daytime', 'h_evening', 'h_night', 'h_sleep'];
+        const defaultIds = ['h_morning', 'h_morning_food', 'h_water', 'h_daytime', 'h_gym', 'h_nutrition', 'h_evening', 'h_night', 'h_sleep'];
         let updatedHabits = [...loadedHabits];
         let hasChanges = false;
 
@@ -25,8 +25,29 @@ export function useStore() {
             hasChanges = true;
         }
 
-        // Specific fix for water goal: change 8 to 3
+        // Specific migration: Split Gym and Nutrition if they are merged in h_gym
         updatedHabits = updatedHabits.map(h => {
+            if (h.id === 'h_gym' && h.items.includes('Shake Taken')) {
+                hasChanges = true;
+                return {
+                    ...h,
+                    items: h.items.filter(item => !['Shake Taken', 'Eggs Eaten'].includes(item))
+                };
+            }
+            // Add Soya Granules to h_morning_food if it's there but empty or missing items
+            if (h.id === 'h_morning_food' && !h.items.includes('Soya Granules')) {
+                hasChanges = true;
+                return { ...h, items: [...h.items, 'Soya Granules'] };
+            }
+            // Specific migration: Move Gym/Shake from Daytime to their own habit if they still exist there
+            if (h.id === 'h_daytime' && h.items.includes('Shake Taken')) {
+                hasChanges = true;
+                return {
+                    ...h,
+                    items: h.items.filter(item => !['Shake Taken', 'Gym Done'].includes(item))
+                };
+            }
+            // Specific fix for water goal: change 8 to 3
             if (h.id === 'h_water' && h.goal?.target === 8) {
                 hasChanges = true;
                 return { ...h, goal: { ...h.goal, target: 3 } };
@@ -77,19 +98,20 @@ export function useStore() {
     }, [dateKey]);
 
 
-    const addHabit = useCallback((title) => {
-        const updated = storage.addHabit({ title, type: 'check' });
+    const addHabit = useCallback((habitData) => {
+        const updated = storage.addHabit(habitData);
+        setHabits(updated);
+    }, []);
+
+    const updateHabit = useCallback((habitId, updates) => {
+        const updated = storage.updateHabit(habitId, updates);
         setHabits(updated);
     }, []);
 
     const deleteHabit = useCallback((habitId) => {
-        setHabits(prev => {
-            const updated = prev.filter(h => h.id !== habitId);
-            storage.saveHabits(updated);
-            return updated;
-        });
-        // Cleanup logs? Usually better to keep historical logs but remove the habit definition.
-        // For now, we just remove the habit.
+        console.log('Deleting habit:', habitId);
+        const updated = storage.deleteHabit(habitId);
+        setHabits(updated);
     }, []);
 
     const updateHabitLog = useCallback((habitId, updateData, targetDateKey = null) => {
@@ -136,9 +158,11 @@ export function useStore() {
         habits,
         logs,
         selectedDate,
+        setSelectedDate,
         currentDayLogs: logs[dateKey] || {},
         toggleHabit,
         addHabit,
+        updateHabit,
         deleteHabit,
         updateHabitLog,
         getStreaks

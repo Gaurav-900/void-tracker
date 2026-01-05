@@ -5,16 +5,18 @@ import { WaterCard } from './components/WaterCard';
 import { SleepCard } from './components/SleepCard';
 import { WeeklyGrid } from './components/WeeklyGrid';
 import { TrendCard } from './components/TrendCard';
-import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, addDays, isToday as isTodayFn, subDays } from 'date-fns';
 import { useStore } from './hooks/useStore';
 import { Check, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import { RoutineSection } from './components/RoutineSection';
+import { HabitForm } from './components/HabitForm';
+import { storage } from './services/storage';
 
 function App() {
   const [activeTab, setActiveTab] = useState('today');
-  const { habits, currentDayLogs, toggleHabit, addHabit, updateHabitLog, getStreaks } = useStore();
+  const { habits, logs, currentDayLogs, toggleHabit, addHabit, updateHabit, deleteHabit, updateHabitLog, getStreaks, selectedDate, setSelectedDate } = useStore();
 
   return (
     <Layout activeTab={activeTab} onTabChange={setActiveTab}>
@@ -25,19 +27,65 @@ function App() {
           onToggle={toggleHabit}
           onUpdateLog={updateHabitLog}
           onAdd={addHabit}
+          onUpdateHabit={updateHabit}
+          onDeleteHabit={deleteHabit}
           getStreaks={getStreaks}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
         />
       )}
-      {activeTab === 'stats' && <StatsView habits={habits} />}
-      {activeTab === 'settings' && <SettingsView habits={habits} />}
+      {activeTab === 'stats' && <StatsView habits={habits} logs={logs} onToggle={toggleHabit} />}
+      {activeTab === 'settings' && <SettingsView habits={habits} onDelete={deleteHabit} />}
     </Layout>
   );
 }
 
-function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
-  const today = format(new Date(), 'EEE, dd MMM');
+function DailyView({
+  habits,
+  logs,
+  onToggle,
+  onUpdateLog,
+  onAdd,
+  onUpdateHabit,
+  onDeleteHabit,
+  getStreaks,
+  selectedDate,
+  onDateChange
+}) {
+  const displayDate = format(selectedDate, 'EEE, dd MMM');
+  const isToday = isTodayFn(selectedDate);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [newHabitTitle, setNewHabitTitle] = useState('');
+  const [editingHabit, setEditingHabit] = useState(null);
+  const [touchStart, setTouchStart] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    // Prevent default scrolling when swiping horizontally if needed
+  };
+
+  const onTouchEnd = (e) => {
+    if (!touchStart) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      onDateChange(addDays(selectedDate, 1));
+    }
+    if (isRightSwipe) {
+      onDateChange(subDays(selectedDate, 1));
+    }
+    setTouchStart(null);
+  };
+
+  const handlePrevDay = () => onDateChange(subDays(selectedDate, 1));
+  const handleNextDay = () => onDateChange(addDays(selectedDate, 1));
+  const handleGoToday = () => onDateChange(new Date());
 
   const streaks = getStreaks();
 
@@ -60,42 +108,94 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
 
   const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (newHabitTitle.trim()) {
-      onAdd(newHabitTitle.trim());
-      setNewHabitTitle('');
-      setIsSheetOpen(false);
-    }
+  const handleCreate = (data) => {
+    onAdd(data);
+    setIsSheetOpen(false);
   };
 
-  const sections = [
-    { id: 'morning', title: 'Morning Routine' },
-    { id: 'daytime', title: 'Daytime Routine' },
-    { id: 'evening', title: 'Evening Routine' },
-    { id: 'night', title: 'Night Routine' },
-    { id: 'other', title: 'Other' }
-  ];
+  const handleUpdate = (data) => {
+    onUpdateHabit(editingHabit.id, data);
+    setEditingHabit(null);
+    setIsSheetOpen(false);
+  };
+
+  const handleDelete = (id) => {
+    onDeleteHabit(id);
+    setEditingHabit(null);
+    setIsSheetOpen(false);
+  };
+
+  const handleRenameSection = (oldId, newName) => {
+    const newId = newName.toLowerCase().trim().replace(/\s+/g, '_');
+    habits.forEach(h => {
+      if (h.section === oldId || (oldId === 'other' && !h.section)) {
+        onUpdateHabit(h.id, { section: newId });
+      }
+    });
+  };
+
+  // Derive sections dynamically
+  const availableSections = Array.from(new Set(habits.map(h => h.section || 'other')));
+  const sectionConfig = {
+    morning: 'Morning Routine',
+    daytime: 'Daytime Routine',
+    evening: 'Evening Routine',
+    night: 'Night Routine',
+    other: 'Other'
+  };
+
+  const sections = Object.entries(sectionConfig)
+    .filter(([id]) => availableSections.includes(id))
+    .map(([id, title]) => ({ id, title }));
+
+  // Add custom sections not in the config
+  availableSections.forEach(sid => {
+    if (!sectionConfig[sid]) {
+      sections.push({ id: sid, title: sid.charAt(0).toUpperCase() + sid.slice(1) });
+    }
+  });
 
   const renderHabitCard = (habit) => {
     const status = logs[habit.id]?.status || 'pending';
     const isCompleted = status === 'completed';
 
+    const handleEditClick = (e) => {
+      e.stopPropagation();
+      setEditingHabit(habit);
+      setIsSheetOpen(true);
+    };
+
     if (habit.type === 'count') {
       return (
-        <WaterCard
-          key={habit.id}
-          habit={habit}
-          log={logs[habit.id]}
-          onUpdate={(data) => onUpdateLog(habit.id, data)}
-        />
+        <div key={habit.id} className="relative group">
+          <WaterCard
+            habit={habit}
+            log={logs[habit.id]}
+            onUpdate={(data) => onUpdateLog(habit.id, data)}
+          />
+          <button
+            onClick={handleEditClick}
+            className="absolute top-4 right-4 p-2 opacity-0 group-hover:opacity-100 transition-opacity text-dim"
+          >
+            <Plus size={14} className="rotate-45" /> {/* Using Plus rotated as X/Edit for now or just Edit icon */}
+          </button>
+        </div>
       );
     }
 
     if (habit.type === 'multi_check') {
       const checkedItems = logs[habit.id]?.checked_items || [];
       return (
-        <div key={habit.id} className="flex-col gap-0">
+        <div key={habit.id} className="flex-col gap-0 group">
+          <div className="flex justify-between items-center px-4 py-2">
+            <span className="text-xs font-semibold text-secondary uppercase tracking-widest">{habit.title}</span>
+            <button
+              onClick={handleEditClick}
+              className="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-dim hover:text-primary"
+            >
+              <Plus size={14} className="rotate-45" />
+            </button>
+          </div>
           {habit.items.map(item => {
             const isChecked = checkedItems.includes(item);
             return (
@@ -115,7 +215,7 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
                 <div className={clsx('checkbox-small', isChecked && 'checked')}>
                   {isChecked && <Check size={14} strokeWidth={3} color="#000" />}
                 </div>
-                <span className={clsx('text-[15px] font-medium', isChecked && 'text-dim')}>
+                <span className={clsx('text-[15px] font-medium', isChecked && 'crossed text-dim')}>
                   {item}
                 </span>
               </button>
@@ -127,12 +227,19 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
 
     if (habit.type === 'time_range') {
       return (
-        <SleepCard
-          key={habit.id}
-          habit={habit}
-          log={logs[habit.id]}
-          onUpdate={(data) => onUpdateLog(habit.id, data)}
-        />
+        <div key={habit.id} className="relative group">
+          <SleepCard
+            habit={habit}
+            log={logs[habit.id]}
+            onUpdate={(data) => onUpdateLog(habit.id, data)}
+          />
+          <button
+            onClick={handleEditClick}
+            className="absolute top-4 right-4 p-2 opacity-0 group-hover:opacity-100 transition-opacity text-dim"
+          >
+            <Plus size={14} className="rotate-45" />
+          </button>
+        </div>
       );
     }
 
@@ -140,7 +247,7 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
       <button
         key={habit.id}
         onClick={() => onToggle(habit.id)}
-        className={clsx('habit-card', isCompleted && 'completed')}
+        className={clsx('habit-card group', isCompleted && 'completed')}
       >
         <div className="flex items-center gap-4 full-width">
           <div className={clsx('checkbox', isCompleted && 'checked')}>
@@ -148,29 +255,69 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
           </div>
 
           <div className="flex-1 flex flex-col items-start">
-            <span className={clsx('habit-title', isCompleted && 'text-dim')}>
+            <span className={clsx('habit-title', isCompleted && 'crossed text-dim')}>
               {habit.title}
             </span>
           </div>
 
-          {streaks[habit.id] > 0 && (
-            <div className="streak-badge">
-              🔥 {streaks[habit.id]}
+          <div className="flex items-center gap-3">
+            {streaks[habit.id] > 0 && (
+              <div className="streak-badge">
+                🔥 {streaks[habit.id]}
+              </div>
+            )}
+            <div
+              onClick={handleEditClick}
+              className="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-dim hover:text-primary"
+            >
+              <Plus size={16} className="rotate-45" />
             </div>
-          )}
+          </div>
         </div>
       </button>
     );
   };
 
   return (
-    <div className="flex-col gap-4">
+    <div
+      className="flex-col gap-4"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <header className="flex justify-between items-center py-4">
-        <div>
-          <h1 style={{ fontSize: 'var(--text-xl)' }}>{today}</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 style={{ fontSize: 'var(--text-xl)' }}>{displayDate}</h1>
+            {isToday && <span className="today-badge">Today</span>}
+          </div>
           <p className="text-sm text-secondary">
             {completedCount} / {totalCount} completed ({completionPercentage}%)
           </p>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            className="p-2 hover:bg-white/5 rounded-full transition-colors text-dim"
+            onClick={handlePrevDay}
+            aria-label="Previous day"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          {!isToday && (
+            <button
+              className="text-xs font-medium px-3 py-1 hover:bg-white/5 rounded-full transition-colors"
+              onClick={handleGoToday}
+            >
+              Today
+            </button>
+          )}
+          <button
+            className="p-2 hover:bg-white/5 rounded-full transition-colors text-dim"
+            onClick={handleNextDay}
+            aria-label="Next day"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
       </header>
 
@@ -205,6 +352,7 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
                 title={section.title}
                 habits={sectionHabits}
                 logs={logs}
+                onRename={(newName) => handleRenameSection(section.id, newName)}
               >
                 {sectionHabits.map(renderHabitCard)}
               </RoutineSection>
@@ -213,10 +361,12 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
         )}
       </section>
 
-
       <button
         className="add-habit-btn flex items-center justify-center gap-2"
-        onClick={() => setIsSheetOpen(true)}
+        onClick={() => {
+          setEditingHabit(null);
+          setIsSheetOpen(true);
+        }}
       >
         <Plus size={18} />
         <span>New Habit</span>
@@ -224,24 +374,22 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
 
       <Sheet
         isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        title="New Habit"
+        onClose={() => {
+          setIsSheetOpen(false);
+          setEditingHabit(null);
+        }}
+        title={editingHabit ? "Edit Habit" : "New Habit"}
       >
-        <form onSubmit={handleSave}>
-          <div className="form-group">
-            <label className="form-label">Title</label>
-            <input
-              autoFocus
-              className="form-input"
-              placeholder="e.g. Read 10 mins"
-              value={newHabitTitle}
-              onChange={e => setNewHabitTitle(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn-primary">
-            Create Habit
-          </button>
-        </form>
+        <HabitForm
+          habit={editingHabit}
+          sections={sections}
+          onSave={editingHabit ? handleUpdate : handleCreate}
+          onDelete={handleDelete}
+          onCancel={() => {
+            setIsSheetOpen(false);
+            setEditingHabit(null);
+          }}
+        />
       </Sheet>
     </div>
   );
@@ -249,8 +397,7 @@ function DailyView({ habits, logs, onToggle, onUpdateLog, onAdd, getStreaks }) {
 
 
 
-function StatsView({ habits }) {
-  const { logs, toggleHabit } = useStore();
+function StatsView({ habits, logs, onToggle }) {
   const [weekOffset, setWeekOffset] = useState(0);
 
   const currentWeek = addWeeks(new Date(), weekOffset);
@@ -300,14 +447,13 @@ function StatsView({ habits }) {
         habits={habits}
         logs={logs}
         weekOffset={weekOffset}
-        onToggle={toggleHabit}
+        onToggle={onToggle}
       />
     </div>
   );
 }
 
-function SettingsView({ habits }) {
-  const { deleteHabit } = useStore();
+function SettingsView({ habits, onDelete }) {
 
   const handleExport = () => {
     const data = {
@@ -369,9 +515,7 @@ function SettingsView({ habits }) {
               <button
                 className="text-xs text-red-500 hover:text-red-400 p-2"
                 onClick={() => {
-                  if (confirm(`Delete "${habit.title}"? History will be hidden but remains in logs.`)) {
-                    deleteHabit(habit.id);
-                  }
+                  onDelete(habit.id);
                 }}
               >
                 Delete
