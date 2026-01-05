@@ -56,32 +56,6 @@ function DailyView({
   const isToday = isTodayFn(selectedDate);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
-  const [touchStart, setTouchStart] = useState(null);
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    // Prevent default scrolling when swiping horizontally if needed
-  };
-
-  const onTouchEnd = (e) => {
-    if (!touchStart) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      onDateChange(addDays(selectedDate, 1));
-    }
-    if (isRightSwipe) {
-      onDateChange(subDays(selectedDate, 1));
-    }
-    setTouchStart(null);
-  };
 
   const handlePrevDay = () => onDateChange(subDays(selectedDate, 1));
   const handleNextDay = () => onDateChange(addDays(selectedDate, 1));
@@ -281,8 +255,6 @@ function DailyView({
   return (
     <div
       className="flex-col gap-4"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
     >
       <header className="flex justify-between items-center py-4">
         <div className="flex-1">
